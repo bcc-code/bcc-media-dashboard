@@ -131,7 +131,12 @@ defmodule BccmDashboardWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-surface-default text-text-default">
-      <div class="px-10 py-8 2xl:px-16">
+      <div
+        :if={@overall == :failed}
+        class="pointer-events-none fixed inset-0 z-50 border-8 border-semantic-error"
+        aria-hidden="true"
+      />
+      <div class="p-14">
         <div class="space-y-14">
           <.section :for={section <- @sections} section={section} />
         </div>
