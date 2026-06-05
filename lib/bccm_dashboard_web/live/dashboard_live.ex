@@ -96,7 +96,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     do: "bg-semantic-error text-text-light-default shadow-floating"
 
   defp card_class(:running),
-    do: "bg-semantic-info text-text-light-default shadow-floating"
+    do: "bg-semantic-info text-text-light-default shadow-floating ring-3"
 
   defp card_class(:pending),
     do: "bg-semantic-warning text-text-dark-default shadow-floating"
@@ -119,26 +119,6 @@ defmodule BccmDashboardWeb.DashboardLive do
   defp status_text_class(:canceled), do: "text-text-hint"
   defp status_text_class(_), do: "text-text-hint"
 
-  # Overall banner — the big "ALL GREEN / FAILING / IN FLIGHT" pill at the
-  # top right. Loud states use the saturated semantic surface; the neutral
-  # fallback uses a raised surface so it doesn't shout when nothing's wrong.
-  defp overall_class(:passed),
-    do: "bg-semantic-success text-text-light-default"
-
-  defp overall_class(:failed),
-    do: "bg-semantic-error text-text-light-default"
-
-  defp overall_class(:running),
-    do: "bg-semantic-info text-text-light-default"
-
-  defp overall_class(_),
-    do: "bg-surface-raise text-text-muted gradient-border"
-
-  defp overall_text(:passed), do: "ALL GREEN"
-  defp overall_text(:failed), do: "FAILING"
-  defp overall_text(:running), do: "IN FLIGHT"
-  defp overall_text(_), do: "NO DATA"
-
   defp format_updated_at(nil), do: "never"
 
   defp format_updated_at(%DateTime{} = dt) do
@@ -152,21 +132,6 @@ defmodule BccmDashboardWeb.DashboardLive do
     ~H"""
     <div class="min-h-screen bg-surface-default text-text-default">
       <div class="px-10 py-8 2xl:px-16">
-        <header class="flex flex-wrap items-center justify-between gap-6 pb-10">
-          <div class="flex flex-wrap items-baseline gap-x-8 gap-y-1">
-            <h1 class="text-heading-1 text-text-default">BCCM Operations</h1>
-            <span class="text-body-2 text-text-hint">
-              updated {format_updated_at(@updated_at)}
-            </span>
-          </div>
-          <span class={[
-            "rounded-full px-8 py-3 text-heading-3 uppercase tracking-[0.25em] shadow-floating",
-            overall_class(@overall)
-          ]}>
-            {overall_text(@overall)}
-          </span>
-        </header>
-
         <div class="space-y-14">
           <.section :for={section <- @sections} section={section} />
         </div>
@@ -184,16 +149,16 @@ defmodule BccmDashboardWeb.DashboardLive do
     <section id={"section-#{@section.id}"}>
       <div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
         <div class="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-          <h2 class="text-heading-2 text-text-default">{@section.title}</h2>
+          <h2 class="text-heading-1 text-text-default">{@section.title}</h2>
           <span
             :if={@section.source}
-            class="text-caption-1 uppercase tracking-[0.25em] text-text-hint"
+            class="text-title-1 uppercase tracking-[0.25em] text-text-hint"
           >
             {@section.source}
           </span>
         </div>
-        <span class="text-body-3 text-text-hint">
-          updated {format_updated_at(@section.updated_at)}
+        <span class="text-title-1 text-text-hint">
+          Updated {format_updated_at(@section.updated_at)}
         </span>
       </div>
 
