@@ -156,16 +156,16 @@ defmodule BccmDashboardWeb.DashboardLive do
     ~H"""
     <section id={"section-#{@section.id}"}>
       <div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
-        <div class="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+        <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
           <h2 class="text-heading-1 text-text-default">{@section.title}</h2>
           <span
             :if={@section.source}
-            class="text-title-1 uppercase tracking-[0.25em] text-text-hint"
+            class="text-heading-1 text-text-hint font-normal"
           >
             {@section.source}
           </span>
         </div>
-        <span class="text-title-1 text-text-hint">
+        <span class="text-heading-1 text-text-hint font-normal">
           Updated {format_updated_at(@section.updated_at)}
         </span>
       </div>
@@ -194,20 +194,20 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex flex-col gap-4 rounded-2xl p-6",
+        "flex flex-col gap-6 rounded-2xl p-8",
         card_class(@item.status)
       ]}
     >
-      <h3 class="truncate text-heading-3">{@item.name}</h3>
+      <h3 class="truncate text-heading-2">{@item.name}</h3>
 
       <p class={[
-        "flex items-center gap-2 text-title-1 uppercase tracking-[0.15em]",
+        "flex items-center gap-3 text-heading-3 uppercase tracking-[0.15em]",
         status_text_class(@item.status)
       ]}>
         {@item.status_label || String.upcase(Atom.to_string(@item.status))}
         <svg
           :if={@item.status == :running}
-          class="size-5 spinner-rotate"
+          class="size-6 spinner-rotate"
           viewBox="0 0 24 24"
           fill="none"
           aria-hidden="true"
@@ -224,13 +224,13 @@ defmodule BccmDashboardWeb.DashboardLive do
         </svg>
       </p>
 
-      <p :if={@item.detail} class="text-body-3 opacity-70">{@item.detail}</p>
+      <p :if={@item.detail} class="text-body-2 opacity-70">{@item.detail}</p>
 
-      <div :if={@item.dots != []} class="mt-auto flex flex-wrap gap-2 pt-1">
+      <div :if={@item.dots != []} class="mt-auto flex flex-wrap gap-2 pt-2">
         <span
           :for={{dot, idx} <- Enum.with_index(@item.dots)}
           title={"##{idx + 1}: #{dot[:label] || dot.color}"}
-          class={["block size-5 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
+          class={["block size-6 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
         />
       </div>
     </article>
