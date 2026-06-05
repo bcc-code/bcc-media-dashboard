@@ -15,9 +15,6 @@
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
 
-/* Use the data attribute for dark mode  */
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session],
 [data-phx-teleported-src] {
@@ -28,41 +25,41 @@
     --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
 
     /* Primary / accent */
-    --color-primary-default: var(--ds-primary-default);
-    --color-primary-contrast: var(--ds-primary-contrast);
-    --color-on-primary: var(--ds-on-primary);
+    --color-primary-default: #ffffff;
+    --color-primary-contrast: #ffffff;
+    --color-on-primary: #ffffff;
 
     /* Surfaces */
-    --color-surface-default: var(--ds-surface-default);
-    --color-surface-indent: var(--ds-surface-indent);
-    --color-surface-raise: var(--ds-surface-raise);
+    --color-surface-default: #1c1f1d;
+    --color-surface-indent: rgb(0 0 0 / 0.5);
+    --color-surface-raise: #353836;
 
-    /* Text — themed */
-    --color-text-default: var(--ds-text-default);
-    --color-text-muted: var(--ds-text-muted);
-    --color-text-hint: var(--ds-text-hint);
+    /* Text */
+    --color-text-default: #ffffff;
+    --color-text-muted: #bbc4bd;
+    --color-text-hint: #99a39c;
 
-    /* Text — fixed light (always white-ish) */
-    --color-text-light-default: var(--ds-text-light-default);
-    --color-text-light-muted: var(--ds-text-light-muted);
-    --color-text-light-hint: var(--ds-text-light-hint);
+    /* Text — fixed light (always white-ish), for use on colored fills */
+    --color-text-light-default: #ffffff;
+    --color-text-light-muted: rgb(255 255 255 / 0.8);
+    --color-text-light-hint: rgb(255 255 255 / 0.6);
 
-    /* Text — fixed dark (always black-ish) */
-    --color-text-dark-default: var(--ds-text-dark-default);
-    --color-text-dark-muted: var(--ds-text-dark-muted);
-    --color-text-dark-hint: var(--ds-text-dark-hint);
+    /* Text — fixed dark (always black-ish), for use on colored fills */
+    --color-text-dark-default: #000000;
+    --color-text-dark-muted: rgb(0 0 0 / 0.8);
+    --color-text-dark-hint: rgb(0 0 0 / 0.6);
 
     /* Borders */
-    --color-border-1: var(--ds-border-1);
+    --color-border-1: rgb(255 255 255 / 0.1);
 
     /* Semantic */
-    --color-semantic-error: var(--ds-semantic-error);
-    --color-semantic-success: var(--ds-semantic-success);
-    --color-semantic-warning: var(--ds-semantic-warning);
-    --color-semantic-info: var(--ds-semantic-info);
+    --color-semantic-error: #ef4444;
+    --color-semantic-success: #22c55e;
+    --color-semantic-warning: #eab308;
+    --color-semantic-info: #3b82f6;
 
     /* Focus ring */
-    --color-focus-ring: var(--ds-focus-ring);
+    --color-focus-ring: #ffffff;
 
     /* Typography — values mirror Figma 1:1 with the Flutter design system. */
     --text-heading-1: 48px;
@@ -128,63 +125,6 @@
 }
 
 @layer base {
-    :root {
-        /* Light theme */
-        --ds-primary-default: #333333;
-        --ds-primary-contrast: #000000;
-        --ds-on-primary: #ffffff;
-
-        --ds-surface-default: #ffffff;
-        --ds-surface-indent: #f5f7f6;
-        --ds-surface-raise: #ffffff;
-
-        --ds-text-default: #130d19;
-        --ds-text-muted: #535d56;
-        --ds-text-hint: #99a39c;
-
-        --ds-text-light-default: #ffffff;
-        --ds-text-light-muted: rgb(255 255 255 / 0.8);
-        --ds-text-light-hint: rgb(255 255 255 / 0.6);
-
-        --ds-text-dark-default: #000000;
-        --ds-text-dark-muted: rgb(0 0 0 / 0.8);
-        --ds-text-dark-hint: rgb(0 0 0 / 0.6);
-
-        --ds-border-1: rgb(13 25 17 / 0.1);
-
-        --ds-semantic-error: #dc2626;
-        --ds-semantic-success: #16a34a;
-        --ds-semantic-warning: #ca8a04;
-        --ds-semantic-info: #2563eb;
-
-        --ds-focus-ring: #000000;
-    }
-
-    [data-theme="dark"] {
-        /* Dark theme — only themed tokens are overridden; the fixed
-       light/dark text tokens stay the same across both themes. */
-        --ds-primary-default: #ffffff;
-        --ds-primary-contrast: #ffffff;
-        --ds-on-primary: #ffffff;
-
-        --ds-surface-default: #1c1f1d;
-        --ds-surface-indent: rgb(0 0 0 / 0.5);
-        --ds-surface-raise: #353836;
-
-        --ds-text-default: #ffffff;
-        --ds-text-muted: #bbc4bd;
-        --ds-text-hint: #99a39c;
-
-        --ds-border-1: rgb(255 255 255 / 0.1);
-
-        --ds-semantic-error: #ef4444;
-        --ds-semantic-success: #22c55e;
-        --ds-semantic-warning: #eab308;
-        --ds-semantic-info: #3b82f6;
-
-        --ds-focus-ring: #ffffff;
-    }
-
     html,
     body {
         background-color: var(--color-surface-default);
