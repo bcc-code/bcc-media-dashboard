@@ -2,9 +2,10 @@ defmodule BccmDashboardWeb.DashboardLive do
   @moduledoc """
   Operations dashboard. Renders a list of `%Section{}`s, one per data source.
 
-  Designed for a TV-style wall display: full width, bold type, and items
-  sorted within each section so anything in the red lands in the top-left
-  where the eye naturally enters.
+  Designed for a TV-style wall display: full width, bold type, and stable
+  alphabetical ordering so each card stays in the same spot between renders.
+  Failures are signaled by a red viewport border (see `render/1`), not by
+  reshuffling cards to the top.
 
   Surface, text, and semantic colors come from the design system tokens
   defined in `assets/css/app.css`. The app is dark-only — there's no theme
@@ -63,21 +64,8 @@ defmodule BccmDashboardWeb.DashboardLive do
     |> Enum.max(DateTime, fn -> nil end)
   end
 
-  # Highest priority (lowest number) sorts first. Tuning this changes the
-  # whole "where does the eye land" story for the wall display: failures
-  # have to win every tie.
-  defp status_priority(:failed), do: 0
-  defp status_priority(:running), do: 1
-  defp status_priority(:pending), do: 2
-  defp status_priority(:stopping), do: 3
-  defp status_priority(:canceled), do: 4
-  defp status_priority(:stopped), do: 5
-  defp status_priority(:unknown), do: 6
-  defp status_priority(:passed), do: 7
-  defp status_priority(_), do: 99
-
   defp sort_items(items) do
-    Enum.sort_by(items, &{status_priority(&1.status), &1.name})
+    Enum.sort_by(items, & &1.name)
   end
 
   # Dot fills use the semantic palette so a row of dots reads the same as a
@@ -119,12 +107,10 @@ defmodule BccmDashboardWeb.DashboardLive do
   defp status_text_class(:canceled), do: "text-text-hint"
   defp status_text_class(_), do: "text-text-hint"
 
-  defp format_updated_at(nil), do: "never"
-
   defp format_updated_at(%DateTime{} = dt) do
     dt
     |> DateTime.truncate(:second)
-    |> Calendar.strftime("%H:%M:%S UTC")
+    |> Calendar.strftime("%H:%M:%S")
   end
 
   @impl true
@@ -145,6 +131,20 @@ defmodule BccmDashboardWeb.DashboardLive do
         </div>
       </div>
     </div>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalTime">
+      export default {
+        mounted() { this.format() },
+        updated() { this.format() },
+        format() {
+          const dt = new Date(this.el.getAttribute("datetime"))
+          if (isNaN(dt)) return
+          this.el.textContent = dt.toLocaleTimeString(undefined, {
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+          })
+        }
+      }
+    </script>
     """
   end
 
@@ -166,7 +166,18 @@ defmodule BccmDashboardWeb.DashboardLive do
           </span>
         </div>
         <span class="text-heading-1 text-text-hint font-normal">
-          Updated {format_updated_at(@section.updated_at)}
+          Last updated
+          <%= if @section.updated_at do %>
+            <time
+              id={"updated-#{@section.id}"}
+              phx-hook=".LocalTime"
+              datetime={DateTime.to_iso8601(@section.updated_at)}
+            >
+              {format_updated_at(@section.updated_at)}
+            </time>
+          <% else %>
+            never
+          <% end %>
         </span>
       </div>
 
