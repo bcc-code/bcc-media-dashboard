@@ -11,9 +11,7 @@ defmodule BccmDashboard.Application do
       BccmDashboardWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:bccm_dashboard, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BccmDashboard.PubSub},
-      # Start a worker by calling: BccmDashboard.Worker.start_link(arg)
-      # {BccmDashboard.Worker, arg},
-      # Start to serve requests, typically the last entry
+      {BccmDashboard.Semaphore.Poller, semaphore_poller_opts()},
       BccmDashboardWeb.Endpoint
     ]
 
@@ -29,5 +27,9 @@ defmodule BccmDashboard.Application do
   def config_change(changed, _new, removed) do
     BccmDashboardWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp semaphore_poller_opts do
+    Application.get_env(:bccm_dashboard, BccmDashboard.Semaphore.Poller, [])
   end
 end

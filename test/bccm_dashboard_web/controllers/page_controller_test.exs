@@ -1,8 +1,11 @@
-defmodule BccmDashboardWeb.PageControllerTest do
+defmodule BccmDashboardWeb.DashboardLiveTest do
   use BccmDashboardWeb.ConnCase
 
-  test "GET /", %{conn: conn} do
-    conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Peace of mind from prototype to production"
+  import Phoenix.LiveViewTest
+
+  test "GET / renders the operations dashboard", %{conn: conn} do
+    {:ok, view, html} = live(conn, ~p"/")
+    assert html =~ "BCCM Operations"
+    assert has_element?(view, "#refresh-btn")
   end
 end

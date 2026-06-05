@@ -20,6 +20,20 @@ if System.get_env("PHX_SERVER") do
   config :bccm_dashboard, BccmDashboardWeb.Endpoint, server: true
 end
 
+# Semaphore CI integration. The token is read at runtime so it can be supplied
+# via the environment in both dev and prod. A missing token is non-fatal — the
+# dashboard will still render, surface the error, and pick the credentials up
+# on the next refresh once they're set.
+config :bccm_dashboard, BccmDashboard.Semaphore.Client,
+  token: System.get_env("SEMAPHORE_TOKEN"),
+  org: System.get_env("SEMAPHORE_ORG", "bccmedia")
+
+config :bccm_dashboard, BccmDashboard.Semaphore.Poller,
+  refresh_ms: String.to_integer(System.get_env("SEMAPHORE_REFRESH_MS") || "60000"),
+  window_days: String.to_integer(System.get_env("SEMAPHORE_WINDOW_DAYS") || "7"),
+  max_projects: String.to_integer(System.get_env("SEMAPHORE_MAX_PROJECTS") || "12"),
+  max_pipelines: String.to_integer(System.get_env("SEMAPHORE_MAX_PIPELINES") || "16")
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
