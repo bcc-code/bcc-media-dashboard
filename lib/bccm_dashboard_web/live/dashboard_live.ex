@@ -137,6 +137,9 @@ defmodule BccmDashboardWeb.DashboardLive do
         aria-hidden="true"
       />
       <div class="p-14">
+        <header class="mb-14">
+          <img class="h-14" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
+        </header>
         <div class="space-y-14">
           <.section :for={section <- @sections} section={section} />
         </div>
@@ -198,10 +201,27 @@ defmodule BccmDashboardWeb.DashboardLive do
       <h3 class="truncate text-heading-3">{@item.name}</h3>
 
       <p class={[
-        "text-title-1 uppercase tracking-[0.15em]",
+        "flex items-center gap-2 text-title-1 uppercase tracking-[0.15em]",
         status_text_class(@item.status)
       ]}>
         {@item.status_label || String.upcase(Atom.to_string(@item.status))}
+        <svg
+          :if={@item.status == :running}
+          class="size-5 spinner-rotate"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle
+            class="spinner-segment"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </svg>
       </p>
 
       <p :if={@item.detail} class="text-body-3 opacity-70">{@item.detail}</p>
