@@ -9,7 +9,14 @@ defmodule BccmDashboard.Semaphore.Client do
   @default_base_url "https://%{org}.semaphoreci.com/api/v1alpha"
 
   @type project :: %{id: String.t(), name: String.t()}
-  @type pipeline :: %{state: String.t(), result: String.t() | nil, created_at: integer() | nil}
+  @type pipeline :: %{
+          state: String.t(),
+          result: String.t() | nil,
+          branch_name: String.t() | nil,
+          created_at: integer() | nil,
+          running_at: integer() | nil,
+          done_at: integer() | nil
+        }
 
   @spec list_projects(keyword()) :: {:ok, [project()]} | {:error, term()}
   def list_projects(opts \\ []) do
@@ -21,17 +28,19 @@ defmodule BccmDashboard.Semaphore.Client do
 
   @spec list_pipelines(String.t(), keyword()) :: {:ok, [pipeline()]} | {:error, term()}
   def list_pipelines(project_id, opts \\ []) when is_binary(project_id) do
-    created_after = Keyword.get(opts, :created_after)
-
     params =
       [project_id: project_id]
-      |> then(fn p -> if created_after, do: [{:created_after, created_after} | p], else: p end)
+      |> maybe_put(:created_after, Keyword.get(opts, :created_after))
+      |> maybe_put(:branch_name, Keyword.get(opts, :branch_name))
 
     with {:ok, body} <- request(:get, "/pipelines", Keyword.put(opts, :params, params)),
          {:ok, pipelines} <- ensure_list(body) do
       {:ok, Enum.map(pipelines, &to_pipeline/1)}
     end
   end
+
+  defp maybe_put(params, _key, nil), do: params
+  defp maybe_put(params, key, value), do: [{key, value} | params]
 
   # Semaphore sometimes serves JSON with a content-type Req doesn't auto-decode,
   # leaving us with a raw string. Decode lazily here so the rest of the client
@@ -89,7 +98,10 @@ defmodule BccmDashboard.Semaphore.Client do
     %{
       state: Map.get(map, "state"),
       result: Map.get(map, "result"),
-      created_at: get_in(map, ["created_at", "seconds"])
+      branch_name: Map.get(map, "branch_name"),
+      created_at: get_in(map, ["created_at", "seconds"]),
+      running_at: get_in(map, ["running_at", "seconds"]),
+      done_at: get_in(map, ["done_at", "seconds"])
     }
   end
 

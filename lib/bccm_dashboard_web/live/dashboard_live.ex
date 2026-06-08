@@ -205,7 +205,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex flex-col gap-6 rounded-2xl p-8",
+        "flex flex-col gap-6 rounded-3xl p-8",
         card_class(@item.status)
       ]}
     >

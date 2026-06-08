@@ -57,7 +57,45 @@ defmodule BccmDashboard.Semaphore do
   defp project_status(_), do: :unknown
 
   defp detail_for(%{dots: []}), do: "no recent runs"
-  defp detail_for(_), do: nil
+
+  defp detail_for(project) do
+    [current_duration(project[:latest]), average_label(project[:avg_run_seconds])]
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> nil
+      parts -> Enum.join(parts, " · ")
+    end
+  end
+
+  defp current_duration(%{state: "RUNNING", running_at: started}) when is_integer(started) do
+    "Running " <> format_duration(System.system_time(:second) - started)
+  end
+
+  defp current_duration(%{running_at: started, done_at: finished})
+       when is_integer(started) and is_integer(finished) do
+    "Ran " <> format_duration(finished - started)
+  end
+
+  defp current_duration(_), do: nil
+
+  defp average_label(seconds) when is_integer(seconds) and seconds > 0 do
+    "avg " <> format_duration(seconds)
+  end
+
+  defp average_label(_), do: nil
+
+  defp format_duration(seconds) when seconds < 0, do: "0s"
+  defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
+
+  defp format_duration(seconds) when seconds < 3600 do
+    "#{div(seconds, 60)}m"
+  end
+
+  defp format_duration(seconds) do
+    hours = div(seconds, 3600)
+    minutes = div(rem(seconds, 3600), 60)
+    "#{hours}h #{minutes}m"
+  end
 
   defp to_dot(dot) do
     %{color: dot.color, label: humanize_dot(dot)}

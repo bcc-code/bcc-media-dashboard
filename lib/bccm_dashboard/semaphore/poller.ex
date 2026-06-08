@@ -19,6 +19,7 @@ defmodule BccmDashboard.Semaphore.Poller do
   @default_max_projects 12
   @default_max_pipelines 16
   @http_concurrency 8
+  @branches ["main", "master"]
 
   # Map (state, result) -> a coarse semantic color used by the UI. The Go
   # service emits palette indices for a tiny LED matrix; here we have a real
@@ -136,18 +137,30 @@ defmodule BccmDashboard.Semaphore.Poller do
     projects
     |> Task.async_stream(
       fn project ->
-        case Client.list_pipelines(project.id, created_after: cutoff) do
+        case fetch_default_branch_pipelines(project.id, cutoff) do
           {:ok, pipelines} ->
-            dots =
-              pipelines
-              |> Enum.take(max_pipelines)
-              |> Enum.map(&to_dot/1)
+            pipelines = Enum.take(pipelines, max_pipelines)
 
-            %{id: project.id, name: project.name, dots: dots, error: nil}
+            %{
+              id: project.id,
+              name: project.name,
+              dots: Enum.map(pipelines, &to_dot/1),
+              latest: List.first(pipelines),
+              avg_run_seconds: average_passed_duration(pipelines),
+              error: nil
+            }
 
           {:error, reason} ->
             Logger.warning("Semaphore pipelines failed for #{project.name}: #{inspect(reason)}")
-            %{id: project.id, name: project.name, dots: [], error: reason}
+
+            %{
+              id: project.id,
+              name: project.name,
+              dots: [],
+              latest: nil,
+              avg_run_seconds: nil,
+              error: reason
+            }
         end
       end,
       max_concurrency: @http_concurrency,
@@ -155,8 +168,47 @@ defmodule BccmDashboard.Semaphore.Poller do
       on_timeout: :kill_task
     )
     |> Enum.map(fn
-      {:ok, result} -> result
-      {:exit, reason} -> %{id: nil, name: "?", dots: [], error: reason}
+      {:ok, result} ->
+        result
+
+      {:exit, reason} ->
+        %{
+          id: nil,
+          name: "?",
+          dots: [],
+          latest: nil,
+          avg_run_seconds: nil,
+          error: reason
+        }
+    end)
+  end
+
+  defp average_passed_duration(pipelines) do
+    durations =
+      pipelines
+      |> Enum.filter(fn p ->
+        p.state == "DONE" and p.result == "PASSED" and
+          is_integer(p.running_at) and is_integer(p.done_at)
+      end)
+      |> Enum.map(fn p -> p.done_at - p.running_at end)
+
+    case durations do
+      [] -> nil
+      _ -> div(Enum.sum(durations), length(durations))
+    end
+  end
+
+  # Probe `main`, then `master`. Semaphore's project list doesn't tell us which
+  # one a given repo uses, and projects that don't push to either (forks, CI
+  # sandbox projects) just show up empty rather than as noise from feature
+  # branches.
+  defp fetch_default_branch_pipelines(project_id, cutoff) do
+    Enum.reduce_while(@branches, {:ok, []}, fn branch, acc ->
+      case Client.list_pipelines(project_id, created_after: cutoff, branch_name: branch) do
+        {:ok, []} -> {:cont, acc}
+        {:ok, pipelines} -> {:halt, {:ok, pipelines}}
+        {:error, _} = err -> {:halt, err}
+      end
     end)
   end
 
