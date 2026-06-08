@@ -59,7 +59,13 @@ defmodule BccmDashboard.Semaphore do
   defp detail_for(%{dots: []}), do: "no recent runs"
 
   defp detail_for(project) do
-    [current_duration(project[:latest]), average_label(project[:avg_run_seconds])]
+    latest = project[:latest]
+    current_seconds = current_seconds(latest)
+
+    [
+      current_label(latest, current_seconds),
+      avg_label(current_seconds, project[:avg_run_seconds])
+    ]
     |> Enum.reject(&is_nil/1)
     |> case do
       [] -> nil
@@ -67,22 +73,35 @@ defmodule BccmDashboard.Semaphore do
     end
   end
 
-  defp current_duration(%{state: "RUNNING", running_at: started}) when is_integer(started) do
-    "Running " <> format_duration(System.system_time(:second) - started)
+  defp current_seconds(%{state: "RUNNING", running_at: started}) when is_integer(started),
+    do: System.system_time(:second) - started
+
+  defp current_seconds(%{running_at: started, done_at: finished})
+       when is_integer(started) and is_integer(finished),
+       do: finished - started
+
+  defp current_seconds(_), do: nil
+
+  defp current_label(%{state: "RUNNING"}, seconds) when is_integer(seconds),
+    do: "Running " <> format_duration(seconds)
+
+  defp current_label(%{}, seconds) when is_integer(seconds),
+    do: "Ran " <> format_duration(seconds)
+
+  defp current_label(_, _), do: nil
+
+  # Hide avg when it's within ~25% of current — at that point the second
+  # number is just noise. Showing it only when divergent trains the eye to
+  # read "avg appearing = off-pace".
+  defp avg_label(current, avg)
+       when is_integer(current) and is_integer(avg) and avg > 0 do
+    if abs(current - avg) * 4 > avg, do: "avg " <> format_duration(avg)
   end
 
-  defp current_duration(%{running_at: started, done_at: finished})
-       when is_integer(started) and is_integer(finished) do
-    "Ran " <> format_duration(finished - started)
-  end
+  defp avg_label(nil, avg) when is_integer(avg) and avg > 0,
+    do: "avg " <> format_duration(avg)
 
-  defp current_duration(_), do: nil
-
-  defp average_label(seconds) when is_integer(seconds) and seconds > 0 do
-    "avg " <> format_duration(seconds)
-  end
-
-  defp average_label(_), do: nil
+  defp avg_label(_, _), do: nil
 
   defp format_duration(seconds) when seconds < 0, do: "0s"
   defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"

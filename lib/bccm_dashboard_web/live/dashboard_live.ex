@@ -235,7 +235,7 @@ defmodule BccmDashboardWeb.DashboardLive do
         </svg>
       </p>
 
-      <p :if={@item.detail} class="text-body-2 opacity-70">{@item.detail}</p>
+      <p :if={@item.detail} class="text-heading-3 font-normal opacity-70">{@item.detail}</p>
 
       <div :if={@item.dots != []} class="mt-auto flex flex-wrap gap-2 pt-2">
         <span
