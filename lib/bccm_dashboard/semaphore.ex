@@ -12,7 +12,7 @@ defmodule BccmDashboard.Semaphore do
   @topic "semaphore:status"
   @section_id :build_pipelines
   @section_title "Build pipelines"
-  @section_source "Semaphore CI"
+  @section_source "Semaphore"
 
   @spec topic() :: String.t()
   def topic, do: @topic
