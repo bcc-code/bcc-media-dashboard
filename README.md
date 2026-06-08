@@ -1,6 +1,6 @@
 # BCC Media dashboard
 
-A simple operations dashboard to see important statuses.
+A simple operations dashboard for important statuses.
 
 ## Running locally
 
@@ -26,7 +26,7 @@ docker build -t bccm-dashboard .
 ```sh
 docker run -p 4000:4000 \
   -e SECRET_KEY_BASE="$(mix phx.gen.secret)" \
-  -e PHX_HOST=dashboard.example.com \
+  -e PHX_HOST=localhost \
   -e SEMAPHORE_TOKEN=... \
   bccm-dashboard
 ```
