@@ -51,11 +51,23 @@ COPY lib lib
 
 COPY assets assets
 
-# compile assets
-RUN mix assets.deploy
+# install esbuild + tailwind binaries (the assets.deploy alias assumes they exist).
+# The installers pull from GitHub releases, which intermittently 504s — retry a few
+# times with backoff so a flaky download doesn't fail the whole build.
+RUN set -e; \
+    for i in 1 2 3 4 5; do \
+      mix assets.setup && break; \
+      [ "$i" = "5" ] && { echo "assets.setup failed after 5 attempts"; exit 1; }; \
+      echo "assets.setup attempt $i failed; retrying in $((i*5))s..."; \
+      sleep $((i*5)); \
+    done
 
-# Compile the release
+# compile first so the :phoenix_live_view compiler extracts colocated hooks
+# into phoenix-colocated/bccm_dashboard before esbuild tries to import them
 RUN mix compile
+
+# bundle and digest assets
+RUN mix assets.deploy
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
