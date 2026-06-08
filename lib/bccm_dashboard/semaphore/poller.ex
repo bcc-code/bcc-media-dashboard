@@ -216,9 +216,19 @@ defmodule BccmDashboard.Semaphore.Poller do
     %{
       state: pipeline.state,
       result: pipeline.result,
-      color: color_for(pipeline.state, pipeline.result)
+      color: color_for(pipeline.state, pipeline.result),
+      duration_seconds: dot_duration(pipeline)
     }
   end
+
+  defp dot_duration(%{state: "RUNNING", running_at: started}) when is_integer(started),
+    do: System.system_time(:second) - started
+
+  defp dot_duration(%{running_at: started, done_at: finished})
+       when is_integer(started) and is_integer(finished),
+       do: finished - started
+
+  defp dot_duration(_), do: nil
 
   defp empty_snapshot do
     %{projects: [], updated_at: nil, error: nil}

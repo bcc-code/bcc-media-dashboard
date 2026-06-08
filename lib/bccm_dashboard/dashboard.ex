@@ -120,12 +120,18 @@ defmodule BccmDashboard.Dashboard do
     `dots` is an optional run history (newest first).
     """
     @enforce_keys [:id, :name, :status]
-    defstruct [:id, :name, :status, :status_label, :detail, dots: []]
+    defstruct [:id, :name, :status, :status_label, :detail, :detail_tone, dots: []]
 
     @type status ::
             :passed | :failed | :running | :pending | :stopping | :stopped | :canceled | :unknown
 
-    @type dot :: %{required(:color) => status(), optional(:label) => String.t()}
+    @type tone :: :warning | nil
+
+    @type dot :: %{
+            required(:color) => status(),
+            optional(:label) => String.t(),
+            optional(:duration_seconds) => non_neg_integer() | nil
+          }
 
     @type t :: %__MODULE__{
             id: String.t() | atom(),
@@ -133,6 +139,7 @@ defmodule BccmDashboard.Dashboard do
             status: status(),
             status_label: String.t() | nil,
             detail: String.t() | nil,
+            detail_tone: tone(),
             dots: [dot()]
           }
   end

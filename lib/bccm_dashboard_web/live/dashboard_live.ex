@@ -201,6 +201,8 @@ defmodule BccmDashboardWeb.DashboardLive do
   attr :item, BccmDashboard.Dashboard.Item, required: true
 
   defp item(assigns) do
+    assigns = assign(assigns, :sparkline_max, sparkline_max(assigns.item.dots))
+
     ~H"""
     <article
       id={"item-#{@item.id}"}
@@ -235,16 +237,40 @@ defmodule BccmDashboardWeb.DashboardLive do
         </svg>
       </p>
 
-      <p :if={@item.detail} class="text-heading-3 font-normal opacity-70">{@item.detail}</p>
+      <p :if={@item.detail} class={detail_class(@item.detail_tone)}>{@item.detail}</p>
 
-      <div :if={@item.dots != []} class="mt-auto flex flex-wrap gap-2 pt-2">
+      <div :if={@item.dots != []} class="mt-auto flex h-12 items-end gap-1 pt-2">
         <span
-          :for={{dot, idx} <- Enum.with_index(@item.dots)}
-          title={"##{idx + 1}: #{dot[:label] || dot.color}"}
-          class={["block size-6 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
+          :for={dot <- Enum.reverse(@item.dots)}
+          title={dot[:label] || Atom.to_string(dot.color)}
+          style={"height: #{sparkline_height_pct(dot, @sparkline_max)}%"}
+          class={["block w-5 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
         />
       </div>
     </article>
     """
+  end
+
+  defp detail_class(:warning), do: "text-heading-3 font-normal text-semantic-warning"
+  defp detail_class(_), do: "text-heading-3 font-normal opacity-70"
+
+  defp sparkline_max(dots) do
+    dots
+    |> Enum.map(& &1[:duration_seconds])
+    |> Enum.reject(&is_nil/1)
+    |> Enum.max(fn -> 0 end)
+  end
+
+  # Bars scale to the longest run in the window, but every bar gets a 15%
+  # floor so a one-bar-equals-one-build read stays possible — even an
+  # aborted-in-seconds failure should be visible as a red stub.
+  defp sparkline_height_pct(dot, max_seconds) do
+    case dot[:duration_seconds] do
+      n when is_integer(n) and n > 0 and max_seconds > 0 ->
+        max(round(n / max_seconds * 100), 15)
+
+      _ ->
+        15
+    end
   end
 end

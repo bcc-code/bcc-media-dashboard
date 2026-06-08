@@ -49,6 +49,7 @@ defmodule BccmDashboard.Semaphore do
       status: status,
       status_label: humanize_status(status),
       detail: detail_for(project),
+      detail_tone: detail_tone_for(project),
       dots: Enum.map(project.dots, &to_dot/1)
     }
   end
@@ -103,6 +104,19 @@ defmodule BccmDashboard.Semaphore do
 
   defp avg_label(_, _), do: nil
 
+  # Warn when the current run is meaningfully slower than the avg — same 25%
+  # threshold as the avg label, so the tint and the second number appear
+  # together. A run finishing *under* avg is good news, not a warning.
+  defp detail_tone_for(project) do
+    case {current_seconds(project[:latest]), project[:avg_run_seconds]} do
+      {current, avg} when is_integer(current) and is_integer(avg) and avg > 0 ->
+        if current * 4 > avg * 5, do: :warning
+
+      _ ->
+        nil
+    end
+  end
+
   defp format_duration(seconds) when seconds < 0, do: "0s"
   defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
 
@@ -117,12 +131,20 @@ defmodule BccmDashboard.Semaphore do
   end
 
   defp to_dot(dot) do
-    %{color: dot.color, label: humanize_dot(dot)}
+    %{
+      color: dot.color,
+      label: humanize_dot(dot),
+      duration_seconds: dot.duration_seconds
+    }
   end
 
   defp humanize_status(status) do
     status |> Atom.to_string() |> String.upcase()
   end
+
+  defp humanize_dot(%{state: "DONE", result: result, duration_seconds: s})
+       when is_binary(result) and is_integer(s),
+       do: "#{result} (#{format_duration(s)})"
 
   defp humanize_dot(%{state: "DONE", result: result}) when is_binary(result), do: result
   defp humanize_dot(%{state: state}) when is_binary(state), do: state
