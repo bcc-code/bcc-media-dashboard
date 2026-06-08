@@ -15,7 +15,7 @@ defmodule BccmDashboard.Semaphore.Poller do
   alias BccmDashboard.Semaphore.Client
 
   @default_refresh_ms 60_000
-  @default_window_days 7
+  @default_window_days 14
   @default_max_projects 12
   @default_max_pipelines 16
   @http_concurrency 8

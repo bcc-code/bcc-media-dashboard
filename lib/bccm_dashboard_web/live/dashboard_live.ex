@@ -241,7 +241,7 @@ defmodule BccmDashboardWeb.DashboardLive do
 
       <div :if={@item.dots != []} class="mt-auto flex h-12 items-end gap-1 pt-2">
         <span
-          :for={dot <- Enum.reverse(@item.dots)}
+          :for={dot <- @item.dots}
           title={dot[:label] || Atom.to_string(dot.color)}
           style={"height: #{sparkline_height_pct(dot, @sparkline_max)}%"}
           class={["block w-5 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
