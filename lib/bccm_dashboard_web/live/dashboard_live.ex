@@ -155,17 +155,17 @@ defmodule BccmDashboardWeb.DashboardLive do
 
     ~H"""
     <section id={"section-#{@section.id}"}>
-      <div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
+      <div class="mb-8 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
         <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-          <h2 class="text-heading-1 text-text-default">{@section.title}</h2>
+          <h2 class="text-heading-2 text-text-default">{@section.title}</h2>
           <span
             :if={@section.source}
-            class="text-heading-1 text-text-hint font-normal"
+            class="text-heading-2 text-text-hint font-normal"
           >
             {@section.source}
           </span>
         </div>
-        <span class="text-heading-1 text-text-hint font-normal">
+        <span class="text-heading-2 text-text-hint font-normal">
           Last updated
           <%= if @section.updated_at do %>
             <time
@@ -190,7 +190,7 @@ defmodule BccmDashboardWeb.DashboardLive do
         <% @items == [] -> %>
           <.empty_state title="No items" />
         <% true -> %>
-          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] gap-8">
             <.item :for={item <- @items} item={item} />
           </div>
       <% end %>
@@ -207,7 +207,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex flex-col gap-6 rounded-3xl p-8",
+        "flex min-h-[20rem] flex-col gap-4 rounded-3xl p-10",
         card_class(@item.status)
       ]}
     >
@@ -239,12 +239,12 @@ defmodule BccmDashboardWeb.DashboardLive do
 
       <p :if={@item.detail} class={detail_class(@item.detail_tone)}>{@item.detail}</p>
 
-      <div :if={@item.dots != []} class="mt-auto flex h-12 items-end gap-1 pt-2">
+      <div :if={@item.dots != []} class="mt-auto h-20 items-end gap-2 pt-2 grid grid-cols-16">
         <span
           :for={dot <- @item.dots}
           title={dot[:label] || Atom.to_string(dot.color)}
           style={"height: #{sparkline_height_pct(dot, @sparkline_max)}%"}
-          class={["block w-5 rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
+          class={["block rounded-sm ring-1 ring-black/30", dot_class(dot.color)]}
         />
       </div>
     </article>
