@@ -130,10 +130,10 @@ defmodule BccmDashboardWeb.DashboardLive do
         aria-hidden="true"
       />
       <div class="p-8 lg:p-14">
-        <header class="mb-14">
-          <img class="h-14" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
+        <header class="mb-16">
+          <img class="h-16" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
         </header>
-        <div class="space-y-14">
+        <div class="space-y-16">
           <.section :for={section <- @sections} section={section} />
         </div>
       </div>
