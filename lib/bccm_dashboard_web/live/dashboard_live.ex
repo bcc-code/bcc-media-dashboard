@@ -185,7 +185,7 @@ defmodule BccmDashboardWeb.DashboardLive do
         <% @items == [] -> %>
           <.empty_state title="No items" />
         <% true -> %>
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-6">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6">
             <.item :for={item <- @items} item={item} />
           </div>
       <% end %>
