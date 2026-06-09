@@ -122,7 +122,7 @@ defmodule BccmDashboardWeb.DashboardLive do
         class="pointer-events-none fixed inset-0 z-50 border-8 border-semantic-error"
         aria-hidden="true"
       />
-      <div class="p-14">
+      <div class="p-8 lg:p-14">
         <header class="mb-14">
           <img class="h-14" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
         </header>
