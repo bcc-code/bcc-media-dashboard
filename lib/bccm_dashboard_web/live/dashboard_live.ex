@@ -72,31 +72,35 @@ defmodule BccmDashboardWeb.DashboardLive do
   defp dot_class(:stopping), do: "bg-semantic-warning"
   defp dot_class(_), do: "bg-text-hint"
 
-  # Cards split into "loud" (failed, running, pending) — fully saturated fills
-  # that read from across the room — and "calm" (everything else) — neutral
-  # raised surfaces with a gradient border so the loud cards pop.
+  # Only :failed gets a fully saturated fill — that's the one state that has
+  # to read from across the room. Every other "noteworthy" state (running,
+  # pending, stopping) sits on the calm surface with a colored ring, so
+  # failures stay the loudest signal on the wall.
   defp card_class(:failed),
     do: "bg-semantic-error text-text-light-default shadow-floating"
 
   defp card_class(:running),
-    do: "bg-semantic-info text-text-light-default shadow-floating ring-3"
+    do:
+      "bg-surface-raise text-text-default gradient-border shadow-resting ring-4 ring-semantic-info"
 
   defp card_class(:pending),
-    do: "bg-semantic-warning text-text-dark-default shadow-floating"
+    do:
+      "bg-surface-raise text-text-default gradient-border shadow-resting ring-4 ring-semantic-warning"
 
   defp card_class(:stopping),
-    do: "bg-semantic-warning text-text-dark-default shadow-floating"
+    do:
+      "bg-surface-raise text-text-default gradient-border shadow-resting ring-4 ring-semantic-warning"
 
   defp card_class(_),
     do: "bg-surface-raise text-text-default gradient-border shadow-resting"
 
-  # The status label color sits on top of the card surface, so each entry
-  # has to coordinate with `card_class/1` above. Loud cards inherit their
-  # contrast color via `currentColor`; calm cards get a semantic accent.
+  # The status label color sits on top of the card surface. Only :failed
+  # uses the white-on-red contrast pair; every other accent picks the
+  # semantic color directly since the card itself stays calm.
   defp status_text_class(:failed), do: "text-text-light-default"
-  defp status_text_class(:running), do: "text-text-light-default"
-  defp status_text_class(:pending), do: "text-text-dark-default"
-  defp status_text_class(:stopping), do: "text-text-dark-default"
+  defp status_text_class(:running), do: "text-semantic-info"
+  defp status_text_class(:pending), do: "text-semantic-warning"
+  defp status_text_class(:stopping), do: "text-semantic-warning"
   defp status_text_class(:passed), do: "text-semantic-success"
   defp status_text_class(:stopped), do: "text-text-hint"
   defp status_text_class(:canceled), do: "text-text-hint"
