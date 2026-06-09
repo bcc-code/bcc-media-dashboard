@@ -130,10 +130,10 @@ defmodule BccmDashboardWeb.DashboardLive do
         aria-hidden="true"
       />
       <div class="p-8 lg:p-14">
-        <header class="mb-16">
-          <img class="h-16" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
+        <header class="mb-14">
+          <img class="h-14" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
         </header>
-        <div class="space-y-16">
+        <div class="space-y-14">
           <.section :for={section <- @sections} section={section} />
         </div>
       </div>
@@ -214,7 +214,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex flex-col gap-4 rounded-3xl p-10",
+        "flex flex-col gap-3 rounded-3xl p-10",
         card_class(@item.status)
       ]}
     >
@@ -246,7 +246,7 @@ defmodule BccmDashboardWeb.DashboardLive do
 
       <p :if={@item.detail} class={detail_class(@item.detail_tone)}>{@item.detail}</p>
 
-      <div :if={@item.dots != []} class="mt-auto h-20 items-end gap-2 pt-2 grid grid-cols-16">
+      <div :if={@item.dots != []} class="mt-6 h-20 items-end gap-2 grid grid-cols-16">
         <span
           :for={dot <- @item.dots}
           title={dot[:label] || Atom.to_string(dot.color)}
