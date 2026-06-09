@@ -111,7 +111,7 @@ defmodule BccmDashboardWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-surface-default text-text-default">
+    <div class="min-h-screen bg-surface-default text-text-default tabular-nums">
       <div
         :if={@overall == :failed}
         class="pointer-events-none fixed inset-0 z-50 border-24 border-semantic-error"
