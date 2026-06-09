@@ -221,7 +221,7 @@ defmodule BccmDashboardWeb.DashboardLive do
       <h3 class="truncate text-heading-2">{@item.name}</h3>
 
       <p class={[
-        "flex items-center gap-3 text-heading-3 uppercase tracking-[0.15em]",
+        "flex items-center gap-3 text-heading-3 uppercase tracking-widest",
         status_text_class(@item.status)
       ]}>
         {@item.status_label || String.upcase(Atom.to_string(@item.status))}
