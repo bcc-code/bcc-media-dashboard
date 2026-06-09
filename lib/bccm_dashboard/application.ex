@@ -12,6 +12,7 @@ defmodule BccmDashboard.Application do
       {DNSCluster, query: Application.get_env(:bccm_dashboard, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BccmDashboard.PubSub},
       {BccmDashboard.Semaphore.Poller, semaphore_poller_opts()},
+      {BccmDashboard.Gatus.Poller, gatus_poller_opts()},
       BccmDashboardWeb.Endpoint
     ]
 
@@ -31,5 +32,9 @@ defmodule BccmDashboard.Application do
 
   defp semaphore_poller_opts do
     Application.get_env(:bccm_dashboard, BccmDashboard.Semaphore.Poller, [])
+  end
+
+  defp gatus_poller_opts do
+    Application.get_env(:bccm_dashboard, BccmDashboard.Gatus.Poller, [])
   end
 end

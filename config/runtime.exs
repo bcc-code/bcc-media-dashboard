@@ -34,6 +34,21 @@ config :bccm_dashboard, BccmDashboard.Semaphore.Poller,
   max_projects: String.to_integer(System.get_env("SEMAPHORE_MAX_PROJECTS") || "12"),
   max_pipelines: String.to_integer(System.get_env("SEMAPHORE_MAX_PIPELINES") || "16")
 
+# Gatus service-health integration. Like the Semaphore source, a missing
+# base URL is non-fatal — the section surfaces the fetch error so the rest
+# of the dashboard keeps working.
+config :bccm_dashboard, BccmDashboard.Gatus.Client,
+  base_url: System.get_env("GATUS_URL"),
+  token: System.get_env("GATUS_TOKEN")
+
+config :bccm_dashboard, BccmDashboard.Gatus.Poller,
+  refresh_ms: String.to_integer(System.get_env("GATUS_REFRESH_MS") || "30000"),
+  max_endpoints: String.to_integer(System.get_env("GATUS_MAX_ENDPOINTS") || "24"),
+  groups:
+    (System.get_env("GATUS_GROUPS") || "")
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

@@ -44,6 +44,11 @@ docker run -p 4000:4000 \
 | `SEMAPHORE_WINDOW_DAYS`   | `7`           | Days of pipeline history to fetch.                                                  |
 | `SEMAPHORE_MAX_PROJECTS`  | `12`          | Max projects to display.                                                            |
 | `SEMAPHORE_MAX_PIPELINES` | `16`          | Max pipeline dots per project.                                                      |
+| `GATUS_URL`               | —             | Base URL of your Gatus instance (e.g. `https://status.example.com`). Without it, the Service health section shows an error. |
+| `GATUS_TOKEN`             | —             | Optional bearer token if your Gatus API requires auth.                              |
+| `GATUS_REFRESH_MS`        | `30000`       | Poll interval in milliseconds.                                                      |
+| `GATUS_MAX_ENDPOINTS`     | `24`          | Max endpoints to display.                                                           |
+| `GATUS_GROUPS`            | —             | Comma-separated Gatus group names to display. Empty = show every endpoint.          |
 | `DNS_CLUSTER_QUERY`       | —             | DNS query for `DNSCluster` (only set if clustering nodes).                          |
 
-If `SEMAPHORE_TOKEN` is missing or invalid, the dashboard still renders and the Semaphore section surfaces the fetch error instead — useful while bootstrapping the deploy.
+If `SEMAPHORE_TOKEN` or `GATUS_URL` is missing or invalid, the dashboard still renders and the affected section surfaces the fetch error instead — useful while bootstrapping the deploy.

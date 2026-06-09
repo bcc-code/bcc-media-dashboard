@@ -19,11 +19,14 @@ defmodule BccmDashboardWeb.DashboardLive do
   """
   use BccmDashboardWeb, :live_view
 
-  alias BccmDashboard.Semaphore
+  alias BccmDashboard.{Gatus, Semaphore}
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Semaphore.subscribe()
+    if connected?(socket) do
+      Semaphore.subscribe()
+      Gatus.subscribe()
+    end
 
     {:ok,
      socket
@@ -36,8 +39,12 @@ defmodule BccmDashboardWeb.DashboardLive do
     {:noreply, assign_sections(socket)}
   end
 
+  def handle_info({:gatus_snapshot, _snapshot}, socket) do
+    {:noreply, assign_sections(socket)}
+  end
+
   defp assign_sections(socket) do
-    sections = [Semaphore.section()]
+    sections = [Semaphore.section(), Gatus.section()]
 
     socket
     |> assign(:sections, sections)
@@ -207,7 +214,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex min-h-[20rem] flex-col gap-4 rounded-3xl p-10",
+        "flex flex-col gap-4 rounded-3xl p-10",
         card_class(@item.status)
       ]}
     >
