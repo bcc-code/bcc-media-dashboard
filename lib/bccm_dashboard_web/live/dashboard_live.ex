@@ -126,7 +126,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <div class="min-h-screen bg-surface-default text-text-default">
       <div
         :if={@overall == :failed}
-        class="pointer-events-none fixed inset-0 z-50 border-8 border-semantic-error"
+        class="pointer-events-none fixed inset-0 z-50 border-24 border-semantic-error"
         aria-hidden="true"
       />
       <div class="p-8 lg:p-14">
