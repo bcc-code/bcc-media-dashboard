@@ -35,3 +35,8 @@ bccm_dashboard-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Local environment variables.
+.env
+.env.*
+!.env.example
+
