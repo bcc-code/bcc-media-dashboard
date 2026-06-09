@@ -54,26 +54,24 @@ defmodule BccmDashboard.Gatus.Client do
     token = Keyword.get(opts, :token, config.token)
     params = Keyword.get(opts, :params, [])
 
-    cond do
-      is_nil(base_url) or base_url == "" ->
-        {:error, :missing_base_url}
+    if is_nil(base_url) or base_url == "" do
+      {:error, :missing_base_url}
+    else
+      req_opts =
+        [
+          method: method,
+          url: String.trim_trailing(base_url, "/") <> path,
+          headers: auth_headers(token),
+          params: params,
+          receive_timeout: 30_000
+        ]
+        |> Keyword.merge(Keyword.get(opts, :req_options, []))
 
-      true ->
-        req_opts =
-          [
-            method: method,
-            url: String.trim_trailing(base_url, "/") <> path,
-            headers: auth_headers(token),
-            params: params,
-            receive_timeout: 30_000
-          ]
-          |> Keyword.merge(Keyword.get(opts, :req_options, []))
-
-        case Req.request(req_opts) do
-          {:ok, %Req.Response{status: 200, body: body}} -> {:ok, body}
-          {:ok, %Req.Response{status: status, body: body}} -> {:error, {:http, status, body}}
-          {:error, reason} -> {:error, reason}
-        end
+      case Req.request(req_opts) do
+        {:ok, %Req.Response{status: 200, body: body}} -> {:ok, body}
+        {:ok, %Req.Response{status: status, body: body}} -> {:error, {:http, status, body}}
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 

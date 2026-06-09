@@ -5,6 +5,7 @@ defmodule BccmDashboardWeb.DashboardLiveTest do
 
   test "GET / renders the operations dashboard", %{conn: conn} do
     {:ok, _view, html} = live(conn, ~p"/")
-    assert html =~ "BCCM Operations"
+    assert html =~ "Build pipelines"
+    assert html =~ "Service health"
   end
 end
