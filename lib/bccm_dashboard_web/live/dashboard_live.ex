@@ -117,11 +117,11 @@ defmodule BccmDashboardWeb.DashboardLive do
         class="pointer-events-none fixed inset-0 z-50 border-24 border-semantic-error"
         aria-hidden="true"
       />
-      <div class="p-8 lg:p-14">
-        <header class="mb-14">
-          <img class="h-14" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
+      <div class="p-6 lg:p-10">
+        <header class="mb-12">
+          <img class="h-12" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
         </header>
-        <div class="space-y-14">
+        <div class="space-y-12">
           <.section :for={section <- @sections} section={section} />
         </div>
       </div>
@@ -150,7 +150,7 @@ defmodule BccmDashboardWeb.DashboardLive do
 
     ~H"""
     <section id={"section-#{@section.id}"}>
-      <div class="mb-8 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
+      <div class="mb-6 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-border-1 pb-4">
         <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
           <h2 class="text-heading-2 text-text-default">{@section.title}</h2>
           <span
@@ -185,7 +185,7 @@ defmodule BccmDashboardWeb.DashboardLive do
         <% @items == [] -> %>
           <.empty_state title="No items" />
         <% true -> %>
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] gap-8">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-6">
             <.item :for={item <- @items} item={item} />
           </div>
       <% end %>
@@ -202,7 +202,7 @@ defmodule BccmDashboardWeb.DashboardLive do
     <article
       id={"item-#{@item.id}"}
       class={[
-        "flex flex-col gap-3 rounded-3xl p-10",
+        "flex flex-col gap-2 rounded-2xl p-6",
         card_class(@item.status)
       ]}
     >
@@ -234,7 +234,7 @@ defmodule BccmDashboardWeb.DashboardLive do
 
       <p :if={@item.detail} class={detail_class(@item.detail_tone)}>{@item.detail}</p>
 
-      <div :if={@item.dots != []} class="mt-6 h-20 items-end gap-2 grid grid-cols-16">
+      <div :if={@item.dots != []} class="mt-3 h-14 items-end gap-2 grid grid-cols-16">
         <span
           :for={dot <- @item.dots}
           title={dot[:label] || Atom.to_string(dot.color)}

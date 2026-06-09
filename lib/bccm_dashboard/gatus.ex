@@ -54,7 +54,7 @@ defmodule BccmDashboard.Gatus do
       name: endpoint.name || endpoint.key || "?",
       status: status,
       status_label: status_label(status),
-      detail: detail_for(endpoint, latest),
+      detail: latest_label(latest),
       detail_tone: nil,
       dots: []
     }
@@ -67,15 +67,6 @@ defmodule BccmDashboard.Gatus do
   defp status_label(:passed), do: "HEALTHY"
   defp status_label(:failed), do: "DOWN"
   defp status_label(_), do: "UNKNOWN"
-
-  defp detail_for(endpoint, latest) do
-    [endpoint.group, latest_label(latest)]
-    |> Enum.reject(&(is_nil(&1) or &1 == ""))
-    |> case do
-      [] -> nil
-      parts -> Enum.join(parts, " · ")
-    end
-  end
 
   defp latest_label(nil), do: nil
 
