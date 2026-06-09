@@ -27,9 +27,14 @@ defmodule BccmDashboard.Semaphore do
   Returns the current Semaphore snapshot wrapped as a dashboard section.
   """
   @spec section() :: Section.t()
-  def section do
-    snapshot = Poller.snapshot()
+  def section, do: from_snapshot(Poller.snapshot())
 
+  @doc """
+  Builds a `%Section{}` from a raw snapshot map. Split from `section/0` so
+  the mapping logic is testable without a running poller.
+  """
+  @spec from_snapshot(map()) :: Section.t()
+  def from_snapshot(snapshot) do
     %Section{
       id: @section_id,
       title: @section_title,

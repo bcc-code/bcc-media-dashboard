@@ -113,6 +113,26 @@ defmodule BccmDashboard.Dashboard do
   The order of the list is the visual order on the page.
   """
 
+  @doc """
+  Rolls a list of sections up into a single traffic-light atom for the page
+  chrome (red border, header tone). Failure dominates everything — a single
+  `:failed` item across any section flips the dashboard. With no items at
+  all, the result is `:unknown` rather than `:passed`, so a still-loading
+  dashboard doesn't pretend to be green.
+  """
+  @spec overall_status([__MODULE__.Section.t()]) :: __MODULE__.Item.status()
+  def overall_status(sections) do
+    items = Enum.flat_map(sections, & &1.items)
+
+    cond do
+      items == [] -> :unknown
+      Enum.any?(items, &(&1.status == :failed)) -> :failed
+      Enum.any?(items, &(&1.status == :running)) -> :running
+      Enum.all?(items, &(&1.status in [:passed, :unknown])) -> :passed
+      true -> :unknown
+    end
+  end
+
   defmodule Item do
     @moduledoc """
     A single status card. `status` is the canonical traffic-light atom used

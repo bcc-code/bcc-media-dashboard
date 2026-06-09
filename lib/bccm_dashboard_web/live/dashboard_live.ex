@@ -19,7 +19,7 @@ defmodule BccmDashboardWeb.DashboardLive do
   """
   use BccmDashboardWeb, :live_view
 
-  alias BccmDashboard.{Gatus, Semaphore}
+  alias BccmDashboard.{Dashboard, Gatus, Semaphore}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -48,20 +48,8 @@ defmodule BccmDashboardWeb.DashboardLive do
 
     socket
     |> assign(:sections, sections)
-    |> assign(:overall, overall_status(sections))
+    |> assign(:overall, Dashboard.overall_status(sections))
     |> assign(:updated_at, latest_updated_at(sections))
-  end
-
-  defp overall_status(sections) do
-    items = Enum.flat_map(sections, & &1.items)
-
-    cond do
-      items == [] -> :unknown
-      Enum.any?(items, &(&1.status == :failed)) -> :failed
-      Enum.any?(items, &(&1.status == :running)) -> :running
-      Enum.all?(items, &(&1.status in [:passed, :unknown])) -> :passed
-      true -> :unknown
-    end
   end
 
   defp latest_updated_at(sections) do
