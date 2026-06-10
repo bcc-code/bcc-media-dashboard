@@ -27,7 +27,7 @@
     /* Primary / accent */
     --color-primary-default: #ffffff;
     --color-primary-contrast: #ffffff;
-    --color-on-primary: #ffffff;
+    --color-on-primary: #000000;
 
     /* Surfaces */
     --color-surface-default: #1c1f1d;
