@@ -81,12 +81,12 @@ defmodule BccmDashboard.GatusTest do
       assert item.status_label == "UNKNOWN"
     end
 
-    test "detail composes group + response time on success" do
+    test "detail surfaces the response time on success" do
       ep =
         endpoint(group: "core", results: [result(success: true, duration: 250_000_000)])
 
       [item] = Gatus.from_snapshot(snapshot([ep])).items
-      assert item.detail == "core · 250ms"
+      assert item.detail == "250ms"
     end
 
     test "response time under 1ms renders as <1ms" do
@@ -104,7 +104,7 @@ defmodule BccmDashboard.GatusTest do
     test "detail surfaces the first error message on failure" do
       ep = endpoint(results: [result(success: false, errors: ["connection refused"])])
       [item] = Gatus.from_snapshot(snapshot([ep])).items
-      assert item.detail == "core · connection refused"
+      assert item.detail == "connection refused"
     end
 
     test "long error message is truncated to 80 chars + ellipsis" do
@@ -112,11 +112,11 @@ defmodule BccmDashboard.GatusTest do
       ep = endpoint(results: [result(success: false, errors: [long])])
       [item] = Gatus.from_snapshot(snapshot([ep])).items
 
-      # detail = "core · <truncated>"; the truncated piece is 80 chars + "…"
-      assert item.detail == "core · " <> String.duplicate("x", 80) <> "…"
+      # detail is the error message truncated to 80 chars + "…"
+      assert item.detail == String.duplicate("x", 80) <> "…"
     end
 
-    test "missing group is dropped from detail" do
+    test "detail is unaffected by the endpoint group" do
       ep =
         endpoint(group: nil, results: [result(success: true, duration: 100_000_000)])
 
