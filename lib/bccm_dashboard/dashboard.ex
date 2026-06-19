@@ -168,16 +168,20 @@ defmodule BccmDashboard.Dashboard do
     @moduledoc """
     A titled block of items. `source` is a short string under the title
     (e.g. "Semaphore CI"). `error` carries a fetch-time failure to surface
-    in the UI without blowing the whole page away.
+    in the UI without blowing the whole page away. `refresh_ms` is the cadence
+    the backing poller is supposed to update on — the LiveView compares it
+    against `updated_at` to flag a section whose data has gone stale (a poller
+    that silently stopped ticking).
     """
     @enforce_keys [:id, :title]
-    defstruct [:id, :title, :source, :updated_at, :error, items: []]
+    defstruct [:id, :title, :source, :updated_at, :refresh_ms, :error, items: []]
 
     @type t :: %__MODULE__{
             id: atom(),
             title: String.t(),
             source: String.t() | nil,
             updated_at: DateTime.t() | nil,
+            refresh_ms: pos_integer() | nil,
             error: term() | nil,
             items: [BccmDashboard.Dashboard.Item.t()]
           }

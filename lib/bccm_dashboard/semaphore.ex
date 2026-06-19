@@ -40,6 +40,7 @@ defmodule BccmDashboard.Semaphore do
       title: @section_title,
       source: @section_source,
       updated_at: snapshot.updated_at,
+      refresh_ms: Map.get(snapshot, :refresh_ms),
       error: snapshot.error,
       items: Enum.map(snapshot.projects, &to_item/1)
     }

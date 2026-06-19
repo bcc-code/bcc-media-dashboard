@@ -46,7 +46,11 @@ defmodule BccmDashboard.Gatus.Poller do
       refresh_ms: Keyword.get(opts, :refresh_ms, @default_refresh_ms),
       groups: Keyword.get(opts, :groups, []),
       max_endpoints: Keyword.get(opts, :max_endpoints, @default_max_endpoints),
-      snapshot: empty_snapshot()
+      snapshot: empty_snapshot(),
+      # endpoint key => DateTime it first went down, carried across refreshes
+      # so the "down N" label keeps counting from the real outage start even
+      # as old check results scroll out of Gatus' bounded result window.
+      down_since: %{}
     }
 
     {:ok, state, {:continue, :first_fetch}}
@@ -73,7 +77,7 @@ defmodule BccmDashboard.Gatus.Poller do
   end
 
   defp do_refresh(state) do
-    snapshot = build_snapshot(state)
+    {snapshot, down_since} = build_snapshot(state)
 
     Phoenix.PubSub.broadcast(
       BccmDashboard.PubSub,
@@ -82,7 +86,7 @@ defmodule BccmDashboard.Gatus.Poller do
     )
 
     schedule_tick(state.refresh_ms)
-    %{state | snapshot: snapshot}
+    %{state | snapshot: snapshot, down_since: down_since}
   end
 
   defp schedule_tick(ms) do
@@ -92,16 +96,80 @@ defmodule BccmDashboard.Gatus.Poller do
   defp build_snapshot(state) do
     case Client.list_endpoint_statuses() do
       {:ok, endpoints} ->
-        endpoints =
+        {endpoints, down_since} =
           endpoints
           |> filter_by_groups(state.groups)
           |> Enum.take(state.max_endpoints)
+          |> track_downtime(state.down_since)
 
-        %{endpoints: endpoints, updated_at: DateTime.utc_now(), error: nil}
+        snapshot = %{
+          endpoints: endpoints,
+          updated_at: DateTime.utc_now(),
+          refresh_ms: state.refresh_ms,
+          error: nil
+        }
+
+        {snapshot, down_since}
 
       {:error, reason} ->
         Logger.error("Gatus endpoint fetch failed: #{inspect(reason)}")
-        %{empty_snapshot() | error: reason, updated_at: DateTime.utc_now()}
+
+        snapshot = %{
+          empty_snapshot()
+          | error: reason,
+            updated_at: DateTime.utc_now(),
+            refresh_ms: state.refresh_ms
+        }
+
+        # Keep the existing down-since anchors across a transient fetch error;
+        # the section shows the error rather than items, so they're just held.
+        {snapshot, state.down_since}
+    end
+  end
+
+  # Stamp each endpoint with the time it first went down and carry those
+  # anchors forward. An endpoint seen down for the first time is anchored to
+  # the start of its trailing failure streak (or now, if that's unknown);
+  # once anchored the timestamp sticks until it recovers, so the outage clock
+  # doesn't reset on every poll. Recovered endpoints drop out of the map.
+  defp track_downtime(endpoints, previous) do
+    Enum.map_reduce(endpoints, %{}, fn endpoint, acc ->
+      key = endpoint.key || endpoint.name
+
+      if endpoint_down?(endpoint) do
+        since = Map.get(previous, key) || streak_start(endpoint.results) || DateTime.utc_now()
+        {Map.put(endpoint, :down_since, since), Map.put(acc, key, since)}
+      else
+        {Map.put(endpoint, :down_since, nil), acc}
+      end
+    end)
+  end
+
+  defp endpoint_down?(%{results: results}) do
+    case List.last(results) do
+      %{success: false} -> true
+      _ -> false
+    end
+  end
+
+  # Walk back from the newest result over the contiguous run of failures and
+  # return when that run began. Gatus returns results oldest-first, so the
+  # streak lives at the tail of the list.
+  defp streak_start(results) do
+    results
+    |> Enum.reverse()
+    |> Enum.take_while(&(&1.success == false))
+    |> List.last()
+    |> case do
+      %{timestamp: ts} when is_binary(ts) -> parse_timestamp(ts)
+      _ -> nil
+    end
+  end
+
+  defp parse_timestamp(ts) do
+    case DateTime.from_iso8601(ts) do
+      {:ok, dt, _offset} -> dt
+      _ -> nil
     end
   end
 
@@ -113,6 +181,6 @@ defmodule BccmDashboard.Gatus.Poller do
   end
 
   defp empty_snapshot do
-    %{endpoints: [], updated_at: nil, error: nil}
+    %{endpoints: [], updated_at: nil, refresh_ms: @default_refresh_ms, error: nil}
   end
 end

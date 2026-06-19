@@ -21,11 +21,24 @@ defmodule BccmDashboardWeb.DashboardLive do
 
   alias BccmDashboard.{Dashboard, Gatus, Semaphore}
 
+  # Re-render on a slow timer even when no broadcast arrives. This is what
+  # lets a section flip to "stale" when its poller goes silent (a silent
+  # poller sends nothing), and what keeps the "down N" outage counters
+  # ticking up between polls.
+  @ui_tick_ms 5_000
+
+  # A section is stale once it hasn't refreshed for several poll cycles —
+  # long enough that a slow fetch won't trip it, short enough to notice a
+  # wedged poller. An erroring poller still ticks `updated_at`, so it shows
+  # its error rather than going stale.
+  @stale_cycles 3
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Semaphore.subscribe()
       Gatus.subscribe()
+      schedule_ui_tick()
     end
 
     {:ok,
@@ -42,6 +55,13 @@ defmodule BccmDashboardWeb.DashboardLive do
   def handle_info({:gatus_snapshot, _snapshot}, socket) do
     {:noreply, assign_sections(socket)}
   end
+
+  def handle_info(:ui_tick, socket) do
+    schedule_ui_tick()
+    {:noreply, assign_sections(socket)}
+  end
+
+  defp schedule_ui_tick, do: Process.send_after(self(), :ui_tick, @ui_tick_ms)
 
   defp assign_sections(socket) do
     sections = [Semaphore.section(), Gatus.section()]
@@ -62,6 +82,17 @@ defmodule BccmDashboardWeb.DashboardLive do
   defp sort_items(items) do
     Enum.sort_by(items, & &1.name)
   end
+
+  # True when a section's data is older than @stale_cycles of its own refresh
+  # interval — i.e. the poller stopped delivering. A section that's never
+  # updated (updated_at nil) is "loading", not stale, and a section without a
+  # known cadence can't be judged.
+  defp stale?(%{updated_at: %DateTime{} = updated_at, refresh_ms: refresh_ms})
+       when is_integer(refresh_ms) and refresh_ms > 0 do
+    DateTime.diff(DateTime.utc_now(), updated_at, :millisecond) > refresh_ms * @stale_cycles
+  end
+
+  defp stale?(_), do: false
 
   # Dot fills use the semantic palette so a row of dots reads the same as a
   # row of status badges. Running pulses to draw the eye.
@@ -150,7 +181,10 @@ defmodule BccmDashboardWeb.DashboardLive do
   attr :section, BccmDashboard.Dashboard.Section, required: true
 
   defp section(assigns) do
-    assigns = assign(assigns, :items, sort_items(assigns.section.items))
+    assigns =
+      assigns
+      |> assign(:items, sort_items(assigns.section.items))
+      |> assign(:stale?, stale?(assigns.section))
 
     ~H"""
     <section id={"section-#{@section.id}"}>
@@ -164,7 +198,16 @@ defmodule BccmDashboardWeb.DashboardLive do
             {@section.source}
           </span>
         </div>
-        <span class="text-heading-2 text-text-hint font-normal">
+        <span class={[
+          "text-heading-2 font-normal flex items-center gap-3",
+          if(@stale?, do: "text-semantic-warning", else: "text-text-hint")
+        ]}>
+          <span
+            :if={@stale?}
+            class="rounded-md bg-semantic-warning px-2 py-0.5 text-heading-3 uppercase tracking-widest text-text-light-default"
+          >
+            Stale
+          </span>
           Last updated
           <%= if @section.updated_at do %>
             <time

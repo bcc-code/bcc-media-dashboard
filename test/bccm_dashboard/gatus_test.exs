@@ -40,6 +40,13 @@ defmodule BccmDashboard.GatusTest do
              } = section
     end
 
+    test "passes through refresh_ms for staleness detection" do
+      section =
+        Gatus.from_snapshot(%{endpoints: [], updated_at: nil, refresh_ms: 30_000, error: nil})
+
+      assert section.refresh_ms == 30_000
+    end
+
     test "successful latest result maps to HEALTHY / :passed" do
       ep = endpoint(results: [result(success: true, duration: 120_000_000)])
       [item] = Gatus.from_snapshot(snapshot([ep])).items
@@ -105,6 +112,33 @@ defmodule BccmDashboard.GatusTest do
       ep = endpoint(results: [result(success: false, errors: ["connection refused"])])
       [item] = Gatus.from_snapshot(snapshot([ep])).items
       assert item.detail == "connection refused"
+    end
+
+    test "down endpoint leads with the outage duration when down_since is set" do
+      ep =
+        endpoint(results: [result(success: false, errors: ["connection refused"])])
+        |> Map.put(:down_since, DateTime.add(DateTime.utc_now(), -125, :second))
+
+      [item] = Gatus.from_snapshot(snapshot([ep])).items
+
+      assert item.detail == "down 2m · connection refused"
+    end
+
+    test "down endpoint without down_since just shows the error" do
+      ep = endpoint(results: [result(success: false, errors: ["timeout"])])
+      [item] = Gatus.from_snapshot(snapshot([ep])).items
+
+      assert item.detail == "timeout"
+    end
+
+    test "healthy endpoints never get a down label" do
+      ep =
+        endpoint(results: [result(success: true, duration: 100_000_000)])
+        |> Map.put(:down_since, DateTime.add(DateTime.utc_now(), -600, :second))
+
+      [item] = Gatus.from_snapshot(snapshot([ep])).items
+
+      assert item.detail == "100ms"
     end
 
     test "long error message is truncated to 80 chars + ellipsis" do

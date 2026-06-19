@@ -124,12 +124,23 @@ defmodule BccmDashboard.Semaphore.Poller do
         |> Enum.take(state.max_projects)
         |> fetch_pipelines(state.max_pipelines, cutoff)
         |> then(fn project_statuses ->
-          %{projects: project_statuses, updated_at: DateTime.utc_now(), error: nil}
+          %{
+            projects: project_statuses,
+            updated_at: DateTime.utc_now(),
+            refresh_ms: state.refresh_ms,
+            error: nil
+          }
         end)
 
       {:error, reason} ->
         Logger.error("Semaphore project list failed: #{inspect(reason)}")
-        %{empty_snapshot() | error: reason, updated_at: DateTime.utc_now()}
+
+        %{
+          empty_snapshot()
+          | error: reason,
+            updated_at: DateTime.utc_now(),
+            refresh_ms: state.refresh_ms
+        }
     end
   end
 
@@ -231,7 +242,7 @@ defmodule BccmDashboard.Semaphore.Poller do
   defp dot_duration(_), do: nil
 
   defp empty_snapshot do
-    %{projects: [], updated_at: nil, error: nil}
+    %{projects: [], updated_at: nil, refresh_ms: @default_refresh_ms, error: nil}
   end
 
   defp unix_now, do: System.system_time(:second)
