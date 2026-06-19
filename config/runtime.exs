@@ -30,7 +30,7 @@ config :bccm_dashboard, BccmDashboard.Semaphore.Client,
 
 config :bccm_dashboard, BccmDashboard.Semaphore.Poller,
   refresh_ms: String.to_integer(System.get_env("SEMAPHORE_REFRESH_MS") || "60000"),
-  window_days: String.to_integer(System.get_env("SEMAPHORE_WINDOW_DAYS") || "7"),
+  window_days: String.to_integer(System.get_env("SEMAPHORE_WINDOW_DAYS") || "30"),
   max_projects: String.to_integer(System.get_env("SEMAPHORE_MAX_PROJECTS") || "12"),
   max_pipelines: String.to_integer(System.get_env("SEMAPHORE_MAX_PIPELINES") || "16")
 
