@@ -56,6 +56,23 @@ defmodule BccmDashboard.GatusTest do
       assert item.status_label == "DOWN"
     end
 
+    test "uses the newest result (last in Gatus' chronological order), not the oldest" do
+      # Gatus returns results oldest-first. A recovered endpoint has an old
+      # failure followed by a recent success; the card must reflect the success.
+      ep =
+        endpoint(
+          results: [
+            result(success: false, errors: ["timeout"]),
+            result(success: true, duration: 120_000_000)
+          ]
+        )
+
+      [item] = Gatus.from_snapshot(snapshot([ep])).items
+
+      assert item.status == :passed
+      assert item.status_label == "HEALTHY"
+    end
+
     test "no results yields UNKNOWN" do
       ep = endpoint(results: [])
       [item] = Gatus.from_snapshot(snapshot([ep])).items

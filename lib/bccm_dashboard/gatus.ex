@@ -46,7 +46,7 @@ defmodule BccmDashboard.Gatus do
   end
 
   defp to_item(endpoint) do
-    latest = List.first(endpoint.results)
+    latest = List.last(endpoint.results)
     status = status_for(latest)
 
     %Item{
