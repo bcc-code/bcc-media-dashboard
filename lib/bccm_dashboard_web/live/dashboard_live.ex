@@ -153,14 +153,35 @@ defmodule BccmDashboardWeb.DashboardLive do
         aria-hidden="true"
       />
       <div class="p-6 lg:p-10">
-        <header class="mb-12">
+        <header class="mb-12 flex items-center justify-between gap-6">
           <img class="h-12" src="/images/bcc-media-logo.svg" aria-label="BCC Media" />
+          <time
+            id="clock"
+            phx-hook=".Clock"
+            class="text-heading-1 font-normal leading-0"
+            aria-label="Current time"
+          />
         </header>
         <div class="space-y-12">
           <.section :for={section <- @sections} section={section} />
         </div>
       </div>
     </div>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Clock">
+      export default {
+        mounted() {
+          this.tick()
+          this.timer = setInterval(() => this.tick(), 1000)
+        },
+        destroyed() { clearInterval(this.timer) },
+        tick() {
+          this.el.textContent = new Date().toLocaleTimeString(undefined, {
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+          })
+        }
+      }
+    </script>
 
     <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalTime">
       export default {
