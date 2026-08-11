@@ -140,6 +140,66 @@ defmodule BccmDashboard.SemaphoreTest do
       assert second.label == "FAILED (30s)"
     end
 
+    test "projects are ordered most recently run first" do
+      projects =
+        for {name, running_at} <- [{"old", 100}, {"newest", 900}, {"middle", 500}] do
+          %{
+            id: name,
+            name: name,
+            dots: [passed_dot()],
+            latest: pipeline("DONE", "PASSED", running_at, running_at + 60),
+            avg_run_seconds: 60,
+            error: nil
+          }
+        end
+
+      items = Semaphore.from_snapshot(snapshot(projects)).items
+      assert Enum.map(items, & &1.name) == ["newest", "middle", "old"]
+    end
+
+    test "projects with no runs sort last" do
+      idle = %{id: "idle", name: "idle", dots: [], latest: nil, avg_run_seconds: nil, error: nil}
+
+      active = %{
+        id: "active",
+        name: "active",
+        dots: [passed_dot()],
+        latest: pipeline("DONE", "PASSED", 100, 160),
+        avg_run_seconds: 60,
+        error: nil
+      }
+
+      items = Semaphore.from_snapshot(snapshot([idle, active])).items
+      assert Enum.map(items, & &1.name) == ["active", "idle"]
+    end
+
+    test "at most six projects are rendered, keeping the most recent" do
+      projects =
+        for i <- 1..9 do
+          %{
+            id: "p#{i}",
+            name: "project-#{i}",
+            dots: [passed_dot()],
+            latest: pipeline("DONE", "PASSED", i * 100, i * 100 + 60),
+            avg_run_seconds: 60,
+            error: nil
+          }
+        end
+
+      items = Semaphore.from_snapshot(snapshot(projects)).items
+
+      assert length(items) == 6
+
+      assert Enum.map(items, & &1.name) == [
+               "project-9",
+               "project-8",
+               "project-7",
+               "project-6",
+               "project-5",
+               "project-4"
+             ]
+    end
+
     test "name falls back to id when name is nil" do
       # Mirrors what the poller emits for a project that errored out.
       project = %{

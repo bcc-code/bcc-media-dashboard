@@ -150,7 +150,10 @@ defmodule BccmDashboard.Semaphore.Poller do
       fn project ->
         case fetch_default_branch_pipelines(project.id, cutoff) do
           {:ok, pipelines} ->
-            pipelines = Enum.take(pipelines, max_pipelines)
+            pipelines =
+              pipelines
+              |> Enum.sort_by(&pipeline_time/1, :desc)
+              |> Enum.take(max_pipelines)
 
             %{
               id: project.id,
@@ -192,6 +195,12 @@ defmodule BccmDashboard.Semaphore.Poller do
           error: reason
         }
     end)
+  end
+
+  # Don't trust the API's ordering: `latest` and the dot row both mean
+  # "newest first", so sort explicitly before truncating to the window.
+  defp pipeline_time(pipeline) do
+    pipeline.created_at || pipeline.running_at || pipeline.done_at || 0
   end
 
   defp average_passed_duration(pipelines) do

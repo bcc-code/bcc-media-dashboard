@@ -14,6 +14,11 @@ defmodule BccmDashboard.Semaphore do
   @section_title "Build pipelines"
   @section_source "Semaphore"
 
+  # One row's worth of cards. The poller fetches more projects than this so the
+  # recency sort has something to choose from; everything past the sixth most
+  # recently active project is dropped rather than wrapping onto a second row.
+  @max_items 6
+
   @spec topic() :: String.t()
   def topic, do: @topic
 
@@ -42,8 +47,22 @@ defmodule BccmDashboard.Semaphore do
       updated_at: snapshot.updated_at,
       refresh_ms: Map.get(snapshot, :refresh_ms),
       error: snapshot.error,
-      items: Enum.map(snapshot.projects, &to_item/1)
+      items:
+        snapshot.projects
+        |> Enum.sort_by(&last_run_at/1, :desc)
+        |> Enum.take(@max_items)
+        |> Enum.map(&to_item/1)
     }
+  end
+
+  # Most recently active project first, so the left-most card is always the one
+  # that just ran. Projects with no runs in the window sort to the end (and are
+  # usually pushed off the row entirely).
+  defp last_run_at(project) do
+    case project[:latest] do
+      %{} = latest -> latest[:created_at] || latest[:running_at] || latest[:done_at] || 0
+      _ -> 0
+    end
   end
 
   defp to_item(project) do
