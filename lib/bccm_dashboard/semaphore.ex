@@ -56,11 +56,15 @@ defmodule BccmDashboard.Semaphore do
   end
 
   # Most recently active project first, so the left-most card is always the one
-  # that just ran. Projects with no runs in the window sort to the end (and are
-  # usually pushed off the row entirely).
+  # that just ran. Keys off the latest pipeline's last activity — finished,
+  # else started, else queued — rather than when it was created, so a build
+  # sitting in the queue doesn't outrank one that has actually run since.
+  # (The dots within a card stay in creation order; see `Poller.pipeline_time/1`.)
+  # Projects with no runs in the window sort to the end (and are usually pushed
+  # off the row entirely).
   defp last_run_at(project) do
     case project[:latest] do
-      %{} = latest -> latest[:created_at] || latest[:running_at] || latest[:done_at] || 0
+      %{} = latest -> latest[:done_at] || latest[:running_at] || latest[:created_at] || 0
       _ -> 0
     end
   end

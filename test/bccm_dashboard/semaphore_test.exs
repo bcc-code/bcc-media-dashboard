@@ -157,6 +157,46 @@ defmodule BccmDashboard.SemaphoreTest do
       assert Enum.map(items, & &1.name) == ["newest", "middle", "old"]
     end
 
+    test "ordering follows run time, not when the pipeline was queued" do
+      # "queued" was created most recently but has been sitting in the queue;
+      # "ran" was created earlier and has since finished. The one that actually
+      # ran should come first.
+      queued = %{
+        id: "queued",
+        name: "queued",
+        dots: [],
+        latest: %{
+          state: "QUEUING",
+          result: nil,
+          branch_name: "main",
+          created_at: 900,
+          running_at: nil,
+          done_at: nil
+        },
+        avg_run_seconds: nil,
+        error: nil
+      }
+
+      ran = %{
+        id: "ran",
+        name: "ran",
+        dots: [passed_dot()],
+        latest: %{
+          state: "DONE",
+          result: "PASSED",
+          branch_name: "main",
+          created_at: 100,
+          running_at: 950,
+          done_at: 1000
+        },
+        avg_run_seconds: 50,
+        error: nil
+      }
+
+      items = Semaphore.from_snapshot(snapshot([queued, ran])).items
+      assert Enum.map(items, & &1.name) == ["ran", "queued"]
+    end
+
     test "projects with no runs sort last" do
       idle = %{id: "idle", name: "idle", dots: [], latest: nil, avg_run_seconds: nil, error: nil}
 

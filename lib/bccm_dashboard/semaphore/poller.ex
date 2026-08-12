@@ -199,6 +199,9 @@ defmodule BccmDashboard.Semaphore.Poller do
 
   # Don't trust the API's ordering: `latest` and the dot row both mean
   # "newest first", so sort explicitly before truncating to the window.
+  # Chronological by creation, so the dot row reads as the order builds were
+  # kicked off — a long build doesn't jump ahead of shorter ones that started
+  # after it. (Card ordering is separate; see `Semaphore.last_run_at/1`.)
   defp pipeline_time(pipeline) do
     pipeline.created_at || pipeline.running_at || pipeline.done_at || 0
   end
