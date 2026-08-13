@@ -42,7 +42,18 @@ defmodule BccmDashboard.Gatus do
       updated_at: snapshot.updated_at,
       refresh_ms: Map.get(snapshot, :refresh_ms),
       error: snapshot.error,
-      items: Enum.map(snapshot.endpoints, &to_item/1)
+      # Sorted here rather than in the template: the section carries its items
+      # in display order, and each source decides what that order is.
+      # Alphabetical (after name fallbacks resolve) keeps every endpoint in the
+      # same spot on the wall between polls — Gatus's own response order isn't
+      # stable enough to rely on, and unlike build pipelines there's no useful
+      # recency to sort by, since a healthy check that just ran is no more
+      # interesting than one that ran a minute ago. Failures are called out by
+      # the card fill and the viewport border, not by moving to the front.
+      items:
+        snapshot.endpoints
+        |> Enum.map(&to_item/1)
+        |> Enum.sort_by(& &1.name)
     }
   end
 

@@ -213,7 +213,7 @@ defmodule BccmDashboard.SemaphoreTest do
       assert Enum.map(items, & &1.name) == ["active", "idle"]
     end
 
-    test "at most six projects are rendered, keeping the most recent" do
+    test "at most five projects are rendered, keeping the most recent" do
       projects =
         for i <- 1..9 do
           %{
@@ -228,15 +228,14 @@ defmodule BccmDashboard.SemaphoreTest do
 
       items = Semaphore.from_snapshot(snapshot(projects)).items
 
-      assert length(items) == 6
+      assert length(items) == 5
 
       assert Enum.map(items, & &1.name) == [
                "project-9",
                "project-8",
                "project-7",
                "project-6",
-               "project-5",
-               "project-4"
+               "project-5"
              ]
     end
 

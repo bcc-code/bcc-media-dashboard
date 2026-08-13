@@ -15,9 +15,9 @@ defmodule BccmDashboard.Semaphore do
   @section_source "Semaphore"
 
   # One row's worth of cards. The poller fetches more projects than this so the
-  # recency sort has something to choose from; everything past the sixth most
+  # recency sort has something to choose from; everything past the fifth most
   # recently active project is dropped rather than wrapping onto a second row.
-  @max_items 6
+  @max_items 5
 
   @spec topic() :: String.t()
   def topic, do: @topic

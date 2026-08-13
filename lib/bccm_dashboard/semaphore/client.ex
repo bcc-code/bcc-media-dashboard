@@ -79,6 +79,7 @@ defmodule BccmDashboard.Semaphore.Client do
             params: params,
             receive_timeout: 30_000
           ]
+          |> Keyword.merge(config.req_options)
           |> Keyword.merge(Keyword.get(opts, :req_options, []))
 
         case Req.request(req_opts) do
@@ -111,7 +112,10 @@ defmodule BccmDashboard.Semaphore.Client do
 
     %{
       token: Keyword.get(cfg, :token),
-      base_url: Keyword.get(cfg, :base_url, String.replace(@default_base_url, "%{org}", org))
+      base_url: Keyword.get(cfg, :base_url, String.replace(@default_base_url, "%{org}", org)),
+      # Extra options passed straight to Req. Tests set `plug: {Req.Test, ...}`
+      # here to intercept requests; nothing sets it in dev or prod.
+      req_options: Keyword.get(cfg, :req_options, [])
     }
   end
 end

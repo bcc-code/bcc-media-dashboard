@@ -1,5 +1,27 @@
 import Config
 
+# Tests start the pollers they need themselves, after installing `Req.Test`
+# stubs. See `BccmDashboard.Application.pollers/0`.
+config :bccm_dashboard, start_pollers: false
+
+# Point both HTTP clients at `Req.Test`, so a test that forgets to install a
+# stub fails loudly instead of reaching the real Semaphore or Gatus API. The
+# credentials are placeholders — only their presence matters, since the stub
+# never checks them.
+# `retry: false` because a stubbed error response is the point of the test, not
+# a blip to back off from — Req's default retry would spend seconds on it.
+config :bccm_dashboard, BccmDashboard.Semaphore.Client,
+  token: "test-token",
+  base_url: "http://semaphore.test/api/v1alpha",
+  req_options: [plug: {Req.Test, BccmDashboard.Semaphore.Client}, retry: false]
+
+config :bccm_dashboard, BccmDashboard.Gatus.Client,
+  base_url: "http://gatus.test",
+  req_options: [plug: {Req.Test, BccmDashboard.Gatus.Client}, retry: false]
+
+# PhoenixTest needs to know which endpoint to route through.
+config :phoenix_test, :endpoint, BccmDashboardWeb.Endpoint
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :bccm_dashboard, BccmDashboardWeb.Endpoint,

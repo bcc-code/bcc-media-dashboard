@@ -2,10 +2,14 @@ defmodule BccmDashboardWeb.DashboardLive do
   @moduledoc """
   Operations dashboard. Renders a list of `%Section{}`s, one per data source.
 
-  Designed for a TV-style wall display: full width, bold type, and stable
-  alphabetical ordering so each card stays in the same spot between renders.
-  Failures are signaled by a red viewport border (see `render/1`), not by
-  reshuffling cards to the top.
+  Designed for a TV-style wall display: full width and bold type. Failures are
+  signaled by a red viewport border (see `render/1`), not by reshuffling cards
+  to the top.
+
+  Card order is whatever order the section's items arrive in — each source owns
+  its own ordering, because what "first" means differs per source (Semaphore
+  leads with the most recently active project; Gatus stays alphabetical). The
+  template must not re-sort, or it silently overrides that choice.
 
   Surface, text, and semantic colors come from the design system tokens
   defined in `assets/css/app.css`. The app is dark-only — there's no theme
@@ -77,10 +81,6 @@ defmodule BccmDashboardWeb.DashboardLive do
     |> Enum.map(& &1.updated_at)
     |> Enum.reject(&is_nil/1)
     |> Enum.max(DateTime, fn -> nil end)
-  end
-
-  defp sort_items(items) do
-    Enum.sort_by(items, & &1.name)
   end
 
   # True when a section's data is older than @stale_cycles of its own refresh
@@ -170,7 +170,7 @@ defmodule BccmDashboardWeb.DashboardLive do
       <span
         :if={BuildInfo.short_sha()}
         title={BuildInfo.sha()}
-        class="pointer-events-none fixed bottom-8 right-8 z-40 font-mono text-body-1 text-text-hint opacity-60"
+        class="pointer-events-none fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-40 font-mono text-body-1 text-text-hint opacity-60"
         aria-label="Build commit"
       >
         {BuildInfo.short_sha()}
@@ -211,9 +211,11 @@ defmodule BccmDashboardWeb.DashboardLive do
   attr :section, BccmDashboard.Dashboard.Section, required: true
 
   defp section(assigns) do
+    # Items render in the order the source gave them — see the moduledoc on why
+    # this deliberately doesn't sort.
     assigns =
       assigns
-      |> assign(:items, sort_items(assigns.section.items))
+      |> assign(:items, assigns.section.items)
       |> assign(:stale?, stale?(assigns.section))
 
     ~H"""

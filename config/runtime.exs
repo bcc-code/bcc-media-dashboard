@@ -24,9 +24,15 @@ end
 # via the environment in both dev and prod. A missing token is non-fatal — the
 # dashboard will still render, surface the error, and pick the credentials up
 # on the next refresh once they're set.
-config :bccm_dashboard, BccmDashboard.Semaphore.Client,
-  token: System.get_env("SEMAPHORE_TOKEN"),
-  org: System.get_env("SEMAPHORE_ORG", "bccmedia")
+#
+# Skipped under test: this file is evaluated after `config/test.exs`, so
+# reading the environment here would overwrite the `Req.Test` stub config with
+# nils and quietly send the suite at the real APIs.
+if config_env() != :test do
+  config :bccm_dashboard, BccmDashboard.Semaphore.Client,
+    token: System.get_env("SEMAPHORE_TOKEN"),
+    org: System.get_env("SEMAPHORE_ORG", "bccmedia")
+end
 
 config :bccm_dashboard, BccmDashboard.Semaphore.Poller,
   refresh_ms: String.to_integer(System.get_env("SEMAPHORE_REFRESH_MS") || "60000"),
@@ -36,10 +42,12 @@ config :bccm_dashboard, BccmDashboard.Semaphore.Poller,
 
 # Gatus service-health integration. Like the Semaphore source, a missing
 # base URL is non-fatal — the section surfaces the fetch error so the rest
-# of the dashboard keeps working.
-config :bccm_dashboard, BccmDashboard.Gatus.Client,
-  base_url: System.get_env("GATUS_URL"),
-  token: System.get_env("GATUS_TOKEN")
+# of the dashboard keeps working. Also skipped under test; see above.
+if config_env() != :test do
+  config :bccm_dashboard, BccmDashboard.Gatus.Client,
+    base_url: System.get_env("GATUS_URL"),
+    token: System.get_env("GATUS_TOKEN")
+end
 
 config :bccm_dashboard, BccmDashboard.Gatus.Poller,
   refresh_ms: String.to_integer(System.get_env("GATUS_REFRESH_MS") || "30000"),
