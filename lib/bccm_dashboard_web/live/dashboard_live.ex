@@ -19,7 +19,7 @@ defmodule BccmDashboardWeb.DashboardLive do
   """
   use BccmDashboardWeb, :live_view
 
-  alias BccmDashboard.{Dashboard, Gatus, Semaphore}
+  alias BccmDashboard.{BuildInfo, Dashboard, Gatus, Semaphore}
 
   # Re-render on a slow timer even when no broadcast arrives. This is what
   # lets a section flip to "stale" when its poller goes silent (a silent
@@ -166,6 +166,15 @@ defmodule BccmDashboardWeb.DashboardLive do
           <.section :for={section <- @sections} section={section} />
         </div>
       </div>
+
+      <span
+        :if={BuildInfo.short_sha()}
+        title={BuildInfo.sha()}
+        class="pointer-events-none fixed bottom-8 right-8 z-40 font-mono text-body-1 text-text-hint opacity-60"
+        aria-label="Build commit"
+      >
+        {BuildInfo.short_sha()}
+      </span>
     </div>
 
     <script :type={Phoenix.LiveView.ColocatedHook} name=".Clock">

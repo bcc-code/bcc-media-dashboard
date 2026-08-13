@@ -62,6 +62,12 @@ RUN set -e; \
       sleep $((i*5)); \
     done
 
+# The commit this image was built from, shown in the dashboard footer. The
+# build context has no .git directory, so it has to be passed in. Declared
+# after assets.setup so a new commit doesn't invalidate that (flaky) layer.
+ARG GIT_SHA=""
+ENV GIT_SHA=${GIT_SHA}
+
 # compile first so the :phoenix_live_view compiler extracts colocated hooks
 # into phoenix-colocated/bccm_dashboard before esbuild tries to import them
 RUN mix compile
