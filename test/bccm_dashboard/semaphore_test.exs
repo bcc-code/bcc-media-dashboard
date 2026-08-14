@@ -197,6 +197,46 @@ defmodule BccmDashboard.SemaphoreTest do
       assert Enum.map(items, & &1.name) == ["ran", "queued"]
     end
 
+    test "running projects sort ahead of projects that finished more recently" do
+      running = %{
+        id: "running",
+        name: "running",
+        dots: [running_dot()],
+        latest: pipeline("RUNNING", nil, 100, nil),
+        avg_run_seconds: 60,
+        error: nil
+      }
+
+      finished = %{
+        id: "finished",
+        name: "finished",
+        dots: [passed_dot()],
+        latest: pipeline("DONE", "PASSED", 900, 1000),
+        avg_run_seconds: 60,
+        error: nil
+      }
+
+      items = Semaphore.from_snapshot(snapshot([finished, running])).items
+      assert Enum.map(items, & &1.name) == ["running", "finished"]
+    end
+
+    test "running projects are ordered most recently started first" do
+      projects =
+        for {name, running_at} <- [{"older", 100}, {"newer", 500}] do
+          %{
+            id: name,
+            name: name,
+            dots: [running_dot()],
+            latest: pipeline("RUNNING", nil, running_at, nil),
+            avg_run_seconds: 60,
+            error: nil
+          }
+        end
+
+      items = Semaphore.from_snapshot(snapshot(projects)).items
+      assert Enum.map(items, & &1.name) == ["newer", "older"]
+    end
+
     test "projects with no runs sort last" do
       idle = %{id: "idle", name: "idle", dots: [], latest: nil, avg_run_seconds: nil, error: nil}
 
